@@ -17,6 +17,8 @@ class WrongAttributeException extends Exception
     public function __construct($attribute)
     {
         $this->attribute = $attribute;
+
+        $this->message = 'Wrong attribute: ' . $attribute;
     }
 
     /**

@@ -38,17 +38,18 @@ class Finvalda
      */
     public function getClients()
     {
-        return $this->get('GetKlientusSet', FinvaldaClient::class);
+        $response =  $this->get('GetKlientusSet');
+
+        return $this->parseClientsResponse($response);
     }
 
     /**
      * @param String $url
-     * @param String|null $class
      *
      * @return Collection|mixed|\Psr\Http\Message\ResponseInterface
      * @throws NotFoundException
      */
-    public function get($url, $class = null)
+    public function get($url)
     {
         $url = ltrim($url, '/');
         $headers = [
@@ -76,11 +77,10 @@ class Finvalda
             throw $e;
         }
 
-        $response = $this->parseResponse($response, $class);
+        $response = $this->parseResponse($response);
 
         return $response;
     }
-
 
     /**
      * @param \Psr\Http\Message\ResponseInterface $response
@@ -90,32 +90,42 @@ class Finvalda
      * @throws EmptyResponseException
      * @throws WrongAttributeException
      */
-    protected function parseResponse($response, $class)
+    protected function parseClientsResponse($response)
+    {
+        if (isset($response->Data)) {
+            $response = json_decode($response->Data);
+
+            if (isset($response->Table1)) {
+                $response = $response->Table1;
+
+                $mapper = new JsonMapper();
+
+                if (is_array($response)) {
+                    $response = $mapper->mapArray($response, collect(), FinvaldaClient::class);
+                } else {
+                    $response = $mapper->map($response, new FinvaldaClient);
+                }
+            } else {
+                throw new WrongAttributeException('Table1');
+            }
+        } else {
+            throw new WrongAttributeException('Data');
+        }
+
+        return $response;
+    }
+
+    /**
+     * @param \Psr\Http\Message\ResponseInterface $response
+     *
+     * @return \Illuminate\Support\Collection|mixed
+     * @throws EmptyResponseException
+     * @throws WrongAttributeException
+     */
+    protected function parseResponse($response)
     {
         if (! empty($response)) {
             $response = json_decode($response->getBody()->getContents());
-
-            if (isset($response->Data)) {
-                $response = json_decode($response->Data);
-
-                if (isset($response->Table1)) {
-                    $response = $response->Table1;
-
-                    if ($class) {
-                        $mapper = new JsonMapper();
-
-                        if (is_array($response)) {
-                            $response = $mapper->mapArray($response, collect(), $class);
-                        } else {
-                            $response = $mapper->map($response, new $class);
-                        }
-                    }
-                } else {
-                    throw new WrongAttributeException('Table1');
-                }
-            } else {
-                throw new WrongAttributeException('Data');
-            }
         } else {
             throw new EmptyResponseException();
         }
