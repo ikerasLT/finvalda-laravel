@@ -10,6 +10,7 @@ use Ikeraslt\Finvalda\Exceptions\NoBaseUrlException;
 use Ikeraslt\Finvalda\Exceptions\NotFoundException;
 use Ikeraslt\Finvalda\Exceptions\WrongAttributeException;
 use Ikeraslt\Finvalda\Models\Client as FinvaldaClient;
+use Ikeraslt\Finvalda\Models\Model;
 use Illuminate\Support\Collection;
 use JsonMapper;
 
@@ -44,12 +45,63 @@ class Finvalda
     }
 
     /**
+     * @param string $kodas
+     *
+     * @return Collection|mixed|\Psr\Http\Message\ResponseInterface
+     */
+    public function getClient($kodas)
+    {
+        $response =  $this->get('GetKlientusSet', ['sKliKod' => $kodas]);
+
+        return $this->parseClientsResponse($response);
+    }
+
+    /**
+     * @param \Ikeraslt\Finvalda\Models\Client $client
+     *
+     * @return Collection|mixed|\Psr\Http\Message\ResponseInterface
+     */
+    public function insertClient(FinvaldaClient $client)
+    {
+        if (! $client->kodas) {
+            $client->kodas = $this->generateCode($client->pavadinimas);
+        }
+
+        $response = $this->insertItem($client);
+
+        if ($response->InsertNewItemResult == 2) {
+            return $client;
+        } else {
+            return $response;
+        }
+    }
+
+    /**
+     * @param \Ikeraslt\Finvalda\Models\Model $item
+     *
+     * @return Collection|mixed|\Psr\Http\Message\ResponseInterface
+     */
+    public function insertItem(Model $item)
+    {
+        $json = [
+            'ItemClassName' => $item->getFinvaldaClass(),
+            'xmlString' => $item->toString(),
+        ];
+        
+        $response = $this->get('InsertNewItem', $json);
+
+        return $response;
+    }
+
+    /**
      * @param String $url
+     * @param array|null $json
      *
      * @return Collection|mixed|\Psr\Http\Message\ResponseInterface
      * @throws NotFoundException
+     * @throws NoBaseUrlException
      */
-    public function get($url)
+    public function get($url, $json = null)
     {
         $url = ltrim($url, '/');
         $headers = [
@@ -62,10 +114,14 @@ class Finvalda
             'cache-control' => 'no-cache',
         ];
 
+        if (! $json) {
+            unset($json);
+        }
+
         $client = new Client(['base_uri' => $this->baserUrl]);
 
         try {
-            $response = $client->post($url, compact('headers'));
+            $response = $client->post($url, compact('headers', 'json'));
         } catch (RequestException $e) {
             if ($e->getCode() == 404) {
                 throw new NotFoundException();
@@ -100,10 +156,12 @@ class Finvalda
 
                 $mapper = new JsonMapper();
 
-                if (is_array($response)) {
+                if (count($response) > 1) {
                     $response = $mapper->mapArray($response, collect(), FinvaldaClient::class);
+                } elseif (count($response) == 1) {
+                    $response = $mapper->map($response[0], new FinvaldaClient);
                 } else {
-                    $response = $mapper->map($response, new FinvaldaClient);
+                    return null;
                 }
             } else {
                 throw new WrongAttributeException('Table1');
@@ -131,6 +189,31 @@ class Finvalda
         }
 
         return $response;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return string
+     */
+    protected function generateCode($name)
+    {
+        $i = 0;
+        $code = strtoupper(trim(substr(str_replace(' ', '_', $name), 0, 15)));
+        while ($this->getClient($code)) {
+            $i++;
+
+            if ($i > 1) {
+                $code = substr($code, 0, 0 - strlen($i));
+            }
+
+            if (strlen($code . $i) > 15) {
+                $code = substr($code, 0, 15 - strlen($i));
+            }
+
+            $code .= $i;
+        }
+        return $code;
     }
 
     /**

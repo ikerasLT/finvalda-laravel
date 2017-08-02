@@ -3,8 +3,10 @@
 namespace Ikeraslt\Finvalda\Models;
 
 
-class Client
+class Client extends Model
 {
+    protected $finvalda_class = 'Fvs.Klientas';
+
     public $kodas;
     public $pavadinimas;
     public $skola;
@@ -38,4 +40,38 @@ class Client
      * @var \Carbon\Carbon
      */
     public $koregavimo_data;
+
+    public function toString()
+    {
+        $object = [
+            'sFvsImportoParametras' => 'PARAM1',
+            'sKodas' => $this->kodas,
+            'sPavadinimas' => $this->pavadinimas,
+            'sTelefonas' => $this->telefonas,
+            'sFaksas' => $this->faksas,
+            'sAtsakingasAsmuo' => $this->atskaitingas_asmuo,
+            'sBankas' => $this->bankas,
+            'sBankoSaskaita' => $this->banko_sask,
+            'sKorespSaskBank' => $this->korsp_sask_bank,
+            'sImKodas' => $this->im_kodas,
+            'sPvmMoketojoKod' => $this->pvm_moketojo_kodas,
+            'sPastabos' => $this->pastabos,
+            'sRusis' => $this->rusis,
+            'sEMail' => $this->el_pastas,
+            'sPasiulomaValiuta' => $this->pasiuloma_valiuta,
+            'sYraKlientoPadalinys' => $this->yra_padalinys,
+            'sPozymis1' => $this->pozymis_1,
+            'sPozymis2' => $this->pozymis_2,
+            'sPozymis3' => $this->pozymis_3,
+            'dPapildomaInf' => $this->papildoma_inf,
+        ];
+
+        foreach ($object as $key => $value) {
+            if (is_null($value)) {
+                unset($object[$key]);
+            }
+        }
+
+        return json_encode([$this->getFinvaldaClass() => $object]);
+    }
 }
