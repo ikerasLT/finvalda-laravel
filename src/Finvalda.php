@@ -59,7 +59,7 @@ class Finvalda
     /**
      * @param \Ikeraslt\Finvalda\Models\Client $client
      *
-     * @return Collection|mixed|\Psr\Http\Message\ResponseInterface
+     * @return \Ikeraslt\Finvalda\Models\Client|\Psr\Http\Message\ResponseInterface
      */
     public function insertClient(FinvaldaClient $client)
     {
@@ -70,6 +70,22 @@ class Finvalda
         $response = $this->insertItem($client);
 
         if ($response->InsertNewItemResult == 2) {
+            return $client;
+        } else {
+            return $response;
+        }
+    }
+
+    /**
+     * @param \Ikeraslt\Finvalda\Models\Client $client
+     *
+     * @return \Ikeraslt\Finvalda\Models\Client|\Psr\Http\Message\ResponseInterface
+     */
+    public function updateClient(FinvaldaClient $client)
+    {
+        $response = $this->updateItem($client, $client->kodas);
+
+        if ($response->EditItemResult == 2) {
             return $client;
         } else {
             return $response;
@@ -89,6 +105,24 @@ class Finvalda
         ];
         
         $response = $this->get('InsertNewItem', $json);
+
+        return $response;
+    }
+
+    /**
+     * @param \Ikeraslt\Finvalda\Models\Model $item
+     *
+     * @return Collection|mixed|\Psr\Http\Message\ResponseInterface
+     */
+    public function updateItem(Model $item, $code)
+    {
+        $json = [
+            'ItemClassName' => $item->getFinvaldaClass(),
+            'sItemCode' => $code,
+            'xmlString' => $item->toString(),
+        ];
+
+        $response = $this->get('EditItem', $json);
 
         return $response;
     }
