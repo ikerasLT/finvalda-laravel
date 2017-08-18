@@ -27,10 +27,11 @@ class FinvaldaServiceProvider extends ServiceProvider
     {
         $this->app->singleton('finvalda', function (Container $app) {
             $url = $app->config->get('finvalda.url', '');
+            $dataUrl = $app->config->get('finvalda.data_url', '');
             $user = $app->config->get('finvalda.user', '');
             $password = $app->config->get('finvalda.password', '');
 
-            return new Finvalda($url, $user, $password);
+            return new Finvalda($url, $dataUrl, $user, $password);
         });
 
         $this->app->alias('finvalda', Finvalda::class);

@@ -24,7 +24,7 @@ class FinvaldaTest extends TestCase
     public function testInit()
     {
         $url = rtrim(env('FINVALDA_URL'), '/') . '/';
-        $this->assertSame($url, $this->finvalda->getBaserUrl());
+        $this->assertSame($url, $this->finvalda->getBaseUrl());
         $this->assertSame(env('FINVALDA_USER'), $this->finvalda->getUser());
         $this->assertSame(env('FINVALDA_PASSWORD'), $this->finvalda->getPassword());
     }
