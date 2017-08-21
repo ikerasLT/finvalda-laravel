@@ -3,6 +3,7 @@
 namespace Ikeraslt\Finvalda;
 
 
+use Artisaninweb\SoapWrapper\SoapWrapper;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Ikeraslt\Finvalda\Exceptions\EmptyResponseException;
@@ -33,7 +34,7 @@ class Finvalda
     public function __construct($url, $dataUrl, $user, $password)
     {
         $this->baseUrl = rtrim($url, '/') . '/';
-        $this->dataUrl = rtrim($dataUrl, '/') . '/';
+        $this->dataUrl = rtrim($dataUrl, '/');
         $this->user = $user;
         $this->password = $password;
     }
@@ -136,7 +137,7 @@ class Finvalda
      */
     public function getSales()
     {
-        $response = $this->get('GetSales', null, true);
+        $response = $this->getSoap('GetSales');
 
         return $this->parseSalesResponse($response);
     }
@@ -144,13 +145,12 @@ class Finvalda
     /**
      * @param String $url
      * @param array|null $json
-     * @param bool $data
      *
      * @return Collection|mixed|\Psr\Http\Message\ResponseInterface
      * @throws NotFoundException
      * @throws NoBaseUrlException
      */
-    public function get($url, $json = null, $data = false)
+    public function get($url, $json = null)
     {
         $url = ltrim($url, '/');
         $headers = [
@@ -167,7 +167,7 @@ class Finvalda
             unset($json);
         }
 
-        $base_uri = $data ? $this->dataUrl : $this->baseUrl;
+        $base_uri = $this->baseUrl;
 
         $client = new Client(['base_uri' => $base_uri]);
 
@@ -184,7 +184,33 @@ class Finvalda
             throw $e;
         }
 
-        $response = $data ? $this->parseDataResponse($response) : $this->parseResponse($response);
+        $response = $this->parseResponse($response);
+
+        return $response;
+    }
+
+    public function getSoap($method, $data = [])
+    {
+        $soap = new SoapWrapper();
+
+        $soap->add('FvsWsData', function ($service) {
+            $service->wsdl($this->dataUrl)
+                    ->header('http://www.fvs.lt/webservices', 'AuthHeader', [
+                        'UserName' => $this->user,
+                        'Password' => $this->password,
+                        'RemoveEmptyStringTags' => false,
+                        'RemoveZeroNumberTags' => false,
+                        'RemoveNewLines' => false,
+                    ]);
+        });
+
+        if ($data) {
+            $data = ['parameters' => $data];
+        }
+
+        $response = $soap->call('FvsWsData.' . $method, $data);
+
+        $response = $this->parseSoapResponse($response);
 
         return $response;
     }
@@ -258,15 +284,16 @@ class Finvalda
      *
      * @return array
      * @throws EmptyResponseException
+     * @throws WrongAttributeException
      */
-    protected function parseDataResponse($response)
+    protected function parseSoapResponse($response)
     {
         if (! empty($response)) {
-            $parser = new Parser;
-            $response = $parser->xml($response->getBody()->getContents());
-
-            if (! empty($response['Data'])) {
-                $response = $response['Data'];
+            if (! empty($response->Data) && ! empty($response->Data->any)) {
+                $parser = new Parser;
+                $response = $parser->xml($response->Data->any);
+            } else {
+                throw new WrongAttributeException('Data.any');
             }
         } else {
             throw new EmptyResponseException();
