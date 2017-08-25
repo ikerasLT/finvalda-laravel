@@ -11,8 +11,11 @@ use Ikeraslt\Finvalda\Exceptions\NoBaseUrlException;
 use Ikeraslt\Finvalda\Exceptions\NotFoundException;
 use Ikeraslt\Finvalda\Exceptions\WrongAttributeException;
 use Ikeraslt\Finvalda\Models\Client as FinvaldaClient;
+use Ikeraslt\Finvalda\Models\Inflow;
 use Ikeraslt\Finvalda\Models\Model;
+use Ikeraslt\Finvalda\Models\Payment;
 use Ikeraslt\Finvalda\Models\Sale;
+use Ikeraslt\Finvalda\Models\SaleItem;
 use Illuminate\Support\Collection;
 use JsonMapper;
 use Nathanmac\Utilities\Parser\Parser;
@@ -142,6 +145,50 @@ class Finvalda
         return $this->parseSalesResponse($response);
     }
 
+    public function getSale($series, $opNumber)
+    {
+        $data = [
+            'sSeries'   => $series,
+            'nOpNumber' => $opNumber,
+        ];
+
+        $response = $this->getSoap('GetSales', $data);
+
+        $sale = $this->parseSaleResponse($response);
+        $sale->loadItems();
+        return $sale;
+    }
+
+    public function getSaleItems($series, $opNumber)
+    {
+        $data = [
+            'sSeries'   => $series,
+            'nOpNumber' => $opNumber,
+        ];
+
+        $response = $this->getSoap('GetSalesDet', $data);
+
+        return $this->parseSaleItemsResponse($response);
+    }
+
+    public function GetInflows()
+    {
+        $response = $this->getSoap('GetInflowsDet');
+
+        $inflows = $this->parseInflowsResponse($response);
+
+        return $inflows;
+    }
+
+    public function getPaymentForDoc($series, $doc)
+    {
+        $data = ['sSerija' => $series, 'sDokumentas' => $doc];
+
+        $response =  $this->get('GetAtsiskaitymaiUzDokDataNuoDet', $data);
+
+        return $this->parsePaymentsResponse($response);
+    }
+
     /**
      * @param String $url
      * @param array|null $json
@@ -236,6 +283,67 @@ class Finvalda
     }
 
     /**
+     * @param $response
+     *
+     * @return mixed|null|Sale
+     */
+    public function parseSaleResponse($response)
+    {
+        $result = arr_find('Sales', $response);
+
+        if ($result) {
+            $result = json_decode(json_encode($result));
+        }
+
+        return $result ? $this->map($result, Sale::class) : $response;
+    }
+
+    public function parseSaleItemsResponse($response)
+    {
+        $result = arr_find('SalesDet', $response);
+
+        if ($result) {
+            $result = head($result);
+
+            if ($result) {
+                $result = json_decode(json_encode($result));
+            }
+        }
+
+        if (! is_array($result)) {
+            $result = [$result];
+        }
+
+        $result = $result ? $this->map($result, SaleItem::class) : $response;
+
+        if ($result instanceof SaleItem) {
+            $result = collect([$result]);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param array $response
+     *
+     * @return mixed|null|Collection|Inflow[]
+     */
+    public function parseInflowsResponse($response)
+    {
+        $result = arr_find('InflowsDet', $response);
+
+        if ($result) {
+            $result = head($result);
+
+            if ($result) {
+                $result = json_decode(json_encode($result));
+            }
+        }
+
+        return $result ? $this->map($result, Inflow::class) : $response;
+    }
+
+    /**
      * @param \Psr\Http\Message\ResponseInterface $response
      *
      * @return \Illuminate\Support\Collection|mixed
@@ -251,6 +359,24 @@ class Finvalda
                 $response = $response->Table1;
 
                 $response = $this->map($response, FinvaldaClient::class);
+            } else {
+                throw new WrongAttributeException('Table1');
+            }
+        } else {
+            throw new WrongAttributeException('Data');
+        }
+
+        return $response;
+    }
+
+    protected function parsePaymentsResponse($response)
+    {
+        if (isset($response->Data)) {
+            $response = json_decode($response->Data);
+
+            if (isset($response->Table1)) {
+                $response = $response->Table1;
+                $response = $this->map($response, Payment::class);
             } else {
                 throw new WrongAttributeException('Table1');
             }

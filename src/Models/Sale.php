@@ -3,6 +3,8 @@
 namespace Ikeraslt\Finvalda\Models;
 
 
+use Ikeraslt\Finvalda\Facades\Finvalda;
+
 class Sale extends Model
 {
     /**
@@ -42,4 +44,18 @@ class Sale extends Model
     public $object2;
     public $object3;
     public $object4;
+    public $items;
+
+    /**
+     * @return \Ikeraslt\Finvalda\Models\SaleItem[]
+     */
+    public function setItems()
+    {
+        return $this->items = Finvalda::getSaleItems($this->op_series, $this->op_number);
+    }
+
+    public function loadItems()
+    {
+        $this->setItems();
+    }
 }

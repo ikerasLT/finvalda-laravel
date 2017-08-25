@@ -3,6 +3,8 @@
 namespace Ikeraslt\Finvalda\Models;
 
 
+use Illuminate\Support\Collection;
+
 class Model
 {
     protected $finvalda_class;
@@ -34,6 +36,23 @@ class Model
     public function toString()
     {
         return $this->__toString();
+    }
+
+    public function toArray()
+    {
+        $array = [];
+
+        foreach (get_object_vars($this) as $key => $value) {
+            if ($value instanceof Collection || is_array($value)) {
+                foreach ($value as $item) {
+                    $array[$key][] = is_object($item) ? $item->toArray() : $item;
+                }
+            } else {
+                $array[$key] = $value;
+            }
+        }
+
+        return $array;
     }
 
     public function __toString()
