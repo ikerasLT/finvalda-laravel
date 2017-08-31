@@ -85,6 +85,33 @@ class Finvalda
     }
 
     /**
+     * @param Sale $sale
+     *
+     * @return array|Sale|Collection|mixed|null|\Psr\Http\Message\ResponseInterface
+     */
+    public function insertSale(Sale $sale)
+    {
+
+        if (! $sale->order_number) {
+            $sale->order_number = $this->generateOrderNumber($sale->op_series);
+        } else {
+            $sale->order_number = $this->checkOrderNumber($sale->op_series, $sale->order_number);
+        }
+
+        $response = $this->insertOperation($sale);
+
+        if ($response->InsertNewOperationResult == 2) {
+            $parser = new Parser();
+            $response = $parser->xml($response->sError);
+
+            return $this->getSale($response['SERIJA'], $response['NUMERIS']);
+
+        }
+
+        return $response;
+    }
+
+    /**
      * @param \Ikeraslt\Finvalda\Models\Client $client
      *
      * @return \Ikeraslt\Finvalda\Models\Client|\Psr\Http\Message\ResponseInterface
@@ -122,6 +149,24 @@ class Finvalda
      *
      * @return Collection|mixed|\Psr\Http\Message\ResponseInterface
      */
+    public function insertOperation(Model $item)
+    {
+        $json = [
+            'ItemClassName' => $item->getFinvaldaClass(),
+            'sParametras' => $item->getFinvaldaParam(),
+            'xmlString' => $item->toString(),
+        ];
+
+        $response = $this->get('InsertNewOperation', $json);
+
+        return $response;
+    }
+
+    /**
+     * @param \Ikeraslt\Finvalda\Models\Model $item
+     *
+     * @return Collection|mixed|\Psr\Http\Message\ResponseInterface
+     */
     public function updateItem(Model $item, $code)
     {
         $json = [
@@ -145,6 +190,12 @@ class Finvalda
         return $this->parseSalesResponse($response);
     }
 
+    /**
+     * @param $series
+     * @param $opNumber
+     *
+     * @return Sale|mixed|null
+     */
     public function getSale($series, $opNumber)
     {
         $data = [
@@ -159,6 +210,12 @@ class Finvalda
         return $sale;
     }
 
+    /**
+     * @param $series
+     * @param $opNumber
+     *
+     * @return array|Collection|mixed|null|object
+     */
     public function getSaleItems($series, $opNumber)
     {
         $data = [
@@ -236,6 +293,12 @@ class Finvalda
         return $response;
     }
 
+    /**
+     * @param $method
+     * @param array $data
+     *
+     * @return array|mixed
+     */
     public function getSoap($method, $data = [])
     {
         $soap = new SoapWrapper();
@@ -298,6 +361,11 @@ class Finvalda
         return $result ? $this->map($result, Sale::class) : $response;
     }
 
+    /**
+     * @param $response
+     *
+     * @return array|Collection|mixed|null|object
+     */
     public function parseSaleItemsResponse($response)
     {
         $result = arr_find('SalesDet', $response);
@@ -451,6 +519,36 @@ class Finvalda
             $code .= $i;
         }
         return $code;
+    }
+
+    /**
+     * @param $series
+     * @param null $sales
+     *
+     * @return string
+     */
+    protected function generateOrderNumber($series, $sales = null) {
+        if (! $sales) {
+            $sales = $this->getSales()->where('op_series', $series);
+        }
+
+        return str_pad(intval($sales->max('order_number')) + 1, 7, STR_PAD_LEFT);
+    }
+
+    /**
+     * @param $series
+     * @param $number
+     *
+     * @return string
+     */
+    protected function checkOrderNumber($series, $number) {
+        $sales = $this->getSales()->where('op_series', $series);
+
+        if ($sales->where('order_number', $number)->first()) {
+            return $this->generateOrderNumber($sales, $sales);
+        }
+
+        return $number;
     }
 
     /**

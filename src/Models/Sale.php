@@ -7,6 +7,9 @@ use Ikeraslt\Finvalda\Facades\Finvalda;
 
 class Sale extends Model
 {
+    protected $finvalda_class = 'PardDok';
+    protected $finvalda_param = 'PARAM1';
+
     /**
      * @var \Carbon\Carbon
      */
@@ -47,15 +50,50 @@ class Sale extends Model
     public $items;
 
     /**
+     * @param \Ikeraslt\Finvalda\Models\SaleItem[] $items
+     *
      * @return \Ikeraslt\Finvalda\Models\SaleItem[]
      */
-    public function setItems()
+    public function setItems($items)
     {
-        return $this->items = Finvalda::getSaleItems($this->op_series, $this->op_number);
+        return $this->items = $items;
     }
 
     public function loadItems()
     {
-        $this->setItems();
+        $this->setItems(Finvalda::getSaleItems($this->op_series, $this->op_number));
+    }
+
+    public function toString()
+    {
+        $object = [
+            'sKlientas' => $this->client,
+            'sSerija' => $this->op_series,
+            'sDokumentas' => $this->order_number,
+            'sValiuta' => $this->op_currency,
+            'sSutartis' => $this->op_contract,
+            'tData' => $this->op_date,
+            'tMokejimoData' => $this->payment_date,
+            'sObjektas1' => $this->object1,
+            'sObjektas2' => $this->object2,
+            'sObjektas3' => $this->object3,
+            'sObjektas4' => $this->object4,
+            'tIsrasymoData' => $this->issue_date,
+        ];
+
+        if ($this->items) {
+            foreach ($this->items as $item) {
+                /** @var SaleItem $item */
+                $object[$item->getFinvaldaClass()][] = $item->toArray();
+            }
+        }
+
+        foreach ($object as $key => $value) {
+            if (is_null($value)) {
+                unset($object[$key]);
+            }
+        }
+
+        return json_encode([$this->getFinvaldaClass() => $object]);
     }
 }

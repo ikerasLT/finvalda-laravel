@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 class Model
 {
     protected $finvalda_class;
+    protected $finvalda_param;
 
     /**
      * Model constructor.
@@ -31,6 +32,14 @@ class Model
     public function getFinvaldaClass()
     {
         return $this->finvalda_class;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFinvaldaParam()
+    {
+        return $this->finvalda_param;
     }
 
     public function toString()
