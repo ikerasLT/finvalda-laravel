@@ -105,7 +105,25 @@ class Finvalda
             $response = $parser->xml($response->sError);
 
             return $this->getSale($response['SERIJA'], $response['NUMERIS']);
+        }
 
+        return $response;
+    }
+
+    /**
+     * @param Inflow $inflow
+     *
+     * @return array|Inflow|Collection|mixed|null|\Psr\Http\Message\ResponseInterface
+     */
+    public function insertInflow(Inflow $inflow)
+    {
+        $response = $this->insertOperation($inflow);
+
+        if ($response->InsertNewOperationResult == 2) {
+            $parser = new Parser();
+            $response = $parser->xml($response->sError);
+
+            return $this->getInflow($response['SERIJA1'], $response['NUMERIS']);
         }
 
         return $response;
@@ -228,6 +246,9 @@ class Finvalda
         return $this->parseSaleItemsResponse($response);
     }
 
+    /**
+     * @return Inflow[]|Collection|mixed|null
+     */
     public function GetInflows()
     {
         $response = $this->getSoap('GetInflowsDet');
@@ -235,6 +256,26 @@ class Finvalda
         $inflows = $this->parseInflowsResponse($response);
 
         return $inflows;
+    }
+
+    /**
+     * @param $series
+     * @param $number
+     *
+     * @return Inflow|mixed|null
+     */
+    public function GetInflow($series, $number)
+    {
+        $data = [
+            'sSeries'   => $series,
+            'nOpNumber' => $number,
+        ];
+
+        $response = $this->getSoap('GetInflowsDet', $data);
+
+        $inflow = $this->parseInflowsResponse($response);
+
+        return $inflow;
     }
 
     public function getPaymentForDoc($series, $doc)

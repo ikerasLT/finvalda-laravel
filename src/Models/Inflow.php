@@ -5,7 +5,12 @@ namespace Ikeraslt\Finvalda\Models;
 
 class Inflow extends Model
 {
-//    protected $finvalda_class = 'Fvs.Klientas';
+    const TYPE_ADVANCE = 0;
+    const TYPE_FIFO = 1;
+    const TYPE_SALE = 3;
+
+    protected $finvalda_class = 'IplDok';
+    protected $finvalda_param = 'PARAM3';
 
     /**
      * @var \Carbon\Carbon
@@ -49,5 +54,36 @@ class Inflow extends Model
     public $object4;
     public $object5;
     public $Object6;
+    public $type;
 
+    public function toString()
+    {
+        $object = [
+            'sValiuta' => $this->inflow_currency,
+            'sKlientas' => $this->client,
+            'nTipas' => $this->type,
+            'sSerija' => $this->inflow_series,
+            'sDokumentas' => $this->inflow_order_number,
+            'tData' => $this->inflow_date,
+            'tIsrasymoData' => $this->inflow_issue_date,
+            'IplDokEil' => [
+                'sPavadinimas' => $this->inflow_title,
+                'dSumaV' => $this->amount_inflow_curency,
+                'sSerija' => $this->doc_series,
+                'sDokumentas' => $this->doc_order_number,
+                'sObjektas1' => $this->object1,
+                'sObjektas2' => $this->object2,
+                'sObjektas3' => $this->object3,
+                'sObjektas4' => $this->object4,
+            ]
+        ];
+
+        foreach ($object as $key => $value) {
+            if (is_null($value)) {
+                unset($object[$key]);
+            }
+        }
+
+        return json_encode([$this->getFinvaldaClass() => $object]);
+    }
 }
