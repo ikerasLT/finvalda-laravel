@@ -83,8 +83,7 @@ class Sale extends Model
 
         if ($this->items) {
             foreach ($this->items as $item) {
-                /** @var SaleItem $item */
-                $object[$item->getFinvaldaClass()][] = $item->toArray();
+                $object[$item->getFinvaldaClass()][] = $item->toInsertArray();
             }
         }
 

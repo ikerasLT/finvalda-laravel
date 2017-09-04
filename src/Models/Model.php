@@ -74,4 +74,17 @@ class Model
 
         return json_encode([$this->getFinvaldaClass() => $this]);
     }
+
+    protected function dropNullValues($object)
+    {
+        foreach ($object as $key => &$value) {
+            if (is_array($value)) {
+                $value = $this->dropNullValues($value);
+            } elseif (is_null($value)) {
+                unset($object[$key]);
+            }
+        }
+
+        return $object;
+    }
 }

@@ -64,9 +64,9 @@ class Inflow extends Model
             'nTipas' => $this->type,
             'sSerija' => $this->inflow_series,
             'sDokumentas' => $this->inflow_order_number,
-            'tData' => $this->inflow_date,
+            'tData' => $this->inflow_date->toDateString(),
             'tIsrasymoData' => $this->inflow_issue_date,
-            'IplDokEil' => [
+            'IplDokDetEil' => [
                 'sPavadinimas' => $this->inflow_title,
                 'dSumaV' => $this->amount_inflow_curency,
                 'sSerija' => $this->doc_series,
@@ -78,11 +78,7 @@ class Inflow extends Model
             ]
         ];
 
-        foreach ($object as $key => $value) {
-            if (is_null($value)) {
-                unset($object[$key]);
-            }
-        }
+        $object = $this->dropNullValues($object);
 
         return json_encode([$this->getFinvaldaClass() => $object]);
     }

@@ -37,7 +37,7 @@ class SaleItem extends Model
     public $object3;
     public $object4;
 
-    public function toArray()
+    public function toInsertArray()
     {
         $object = [
             'sKodas' => $this->code,

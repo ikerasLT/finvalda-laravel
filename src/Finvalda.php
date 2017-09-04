@@ -124,6 +124,10 @@ class Finvalda
             $response = $parser->xml($response->sError);
 
             return $this->getInflow($response['SERIJA1'], $response['NUMERIS']);
+        } elseif ($response->nResult == 1054 && $inflow->type != Inflow::TYPE_ADVANCE) {
+            $inflow->type = Inflow::TYPE_ADVANCE;
+
+            return $this->insertInflow($inflow);
         }
 
         return $response;
@@ -266,14 +270,12 @@ class Finvalda
      */
     public function GetInflow($series, $number)
     {
-        $data = [
-            'sSeries'   => $series,
-            'nOpNumber' => $number,
-        ];
+        $response = $this->getSoap('GetInflowsDet');
 
-        $response = $this->getSoap('GetInflowsDet', $data);
-
-        $inflow = $this->parseInflowsResponse($response);
+        $inflow = $this->parseInflowsResponse($response)
+                       ->where('inflow_series', $series)
+                       ->where('inflow_number', $number)
+                       ->first();
 
         return $inflow;
     }
