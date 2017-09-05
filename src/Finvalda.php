@@ -85,7 +85,7 @@ class Finvalda
     }
 
     /**
-     * @param Sale $sale
+     * @param \Ikeraslt\Finvalda\Models\Sale $sale
      *
      * @return array|Sale|Collection|mixed|null|\Psr\Http\Message\ResponseInterface
      */

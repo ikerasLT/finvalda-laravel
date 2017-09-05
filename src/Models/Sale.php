@@ -59,6 +59,18 @@ class Sale extends Model
         return $this->items = $items;
     }
 
+    /**
+     * @param \Ikeraslt\Finvalda\Models\SaleItem $item
+     *
+     * @return \Ikeraslt\Finvalda\Models\SaleItem[]
+     */
+    public function addItem($item)
+    {
+        $this->items[] = $item;
+
+        return $this->items;
+    }
+
     public function loadItems()
     {
         $this->setItems(Finvalda::getSaleItems($this->op_series, $this->op_number));
@@ -72,13 +84,13 @@ class Sale extends Model
             'sDokumentas' => $this->order_number,
             'sValiuta' => $this->op_currency,
             'sSutartis' => $this->op_contract,
-            'tData' => $this->op_date,
-            'tMokejimoData' => $this->payment_date,
+            'tData' => $this->op_date->toDateString(),
+            'tMokejimoData' => $this->payment_date->toDateString(),
             'sObjektas1' => $this->object1,
             'sObjektas2' => $this->object2,
             'sObjektas3' => $this->object3,
             'sObjektas4' => $this->object4,
-            'tIsrasymoData' => $this->issue_date,
+            'tIsrasymoData' => $this->issue_date->toDateString(),
         ];
 
         if ($this->items) {
