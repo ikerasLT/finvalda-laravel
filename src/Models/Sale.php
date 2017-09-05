@@ -49,6 +49,15 @@ class Sale extends Model
     public $object4;
     public $items;
 
+    public function __construct($properties = null)
+    {
+        parent::__construct($properties);
+
+        if (! $this->items) {
+            $this->items = collect();
+        }
+    }
+
     /**
      * @param \Ikeraslt\Finvalda\Models\SaleItem[] $items
      *
@@ -66,7 +75,7 @@ class Sale extends Model
      */
     public function addItem($item)
     {
-        $this->items[] = $item;
+        $this->items->push($item);
 
         return $this->items;
     }
