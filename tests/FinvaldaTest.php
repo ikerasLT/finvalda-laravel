@@ -6,6 +6,7 @@ use Ikeraslt\Finvalda\Exceptions\NotFoundException;
 use Ikeraslt\Finvalda\Finvalda;
 use Ikeraslt\Finvalda\Models\Client;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Config;
 
 /**
  * @property Finvalda $finvalda
@@ -18,7 +19,7 @@ class FinvaldaTest extends TestCase
     {
         parent::setUp();
 
-        $this->finvalda = new Finvalda(env('FINVALDA_URL', ''), env('FINVALDA_USER'), env('FINVALDA_PASSWORD'));
+        $this->finvalda = new Finvalda(env('FINVALDA_URL', ''), env('FINVALDA_DATA_URL'), env('FINVALDA_USER'), env('FINVALDA_PASSWORD'), env('FINVALDA_COMPANY'));
     }
 
     public function testInit()
@@ -49,5 +50,13 @@ class FinvaldaTest extends TestCase
         $this->expectException(NotFoundException::class);
 
         $this->finvalda->get('notExistingMethod');
+    }
+
+    public function testTestMode()
+    {
+        $finvalda = new Finvalda(env('FINVALDA_URL', ''), env('FINVALDA_DATA_URL'), env('FINVALDA_USER'), env('FINVALDA_PASSWORD'), '');
+        $testFinvalda = new Finvalda(env('FINVALDA_URL', ''), env('FINVALDA_DATA_URL'), env('FINVALDA_USER'), env('FINVALDA_PASSWORD'), 'TEST');
+
+        $this->assertNotEquals($finvalda->getClients()->count(), $testFinvalda->getClients()->count());
     }
 }

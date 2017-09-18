@@ -26,6 +26,7 @@ class Finvalda
     protected $dataUrl;
     protected $user;
     protected $password;
+    protected $company;
 
     /**
      * Finvalda constructor.
@@ -34,12 +35,13 @@ class Finvalda
      * @param $user
      * @param $password
      */
-    public function __construct($url, $dataUrl, $user, $password)
+    public function __construct($url, $dataUrl, $user, $password, $company)
     {
         $this->baseUrl = rtrim($url, '/') . '/';
         $this->dataUrl = rtrim($dataUrl, '/');
         $this->user = $user;
         $this->password = $password;
+        $this->company = $company;
     }
 
     /**
@@ -304,6 +306,7 @@ class Finvalda
             'content-type' => 'application/json; charset=utf-8;',
             'username' => $this->user,
             'password' => $this->password,
+            'companyid' => $this->company,
             'removenewlines' => 'false',
             'removezeronumbertags' => 'false',
             'removeemptystringtags' => 'false',
@@ -351,6 +354,7 @@ class Finvalda
                     ->header('http://www.fvs.lt/webservices', 'AuthHeader', [
                         'UserName' => $this->user,
                         'Password' => $this->password,
+                        'CompanyID' => $this->company,
                         'RemoveEmptyStringTags' => false,
                         'RemoveZeroNumberTags' => false,
                         'RemoveNewLines' => false,
@@ -688,4 +692,21 @@ class Finvalda
 
         return $this;
     }
+
+    /**
+     * @return String
+     */
+    public function getCompany()
+    {
+        return $this->company;
+    }
+
+    /**
+     * @param String $company
+     */
+    public function setCompany($company)
+    {
+        $this->company = $company;
+    }
+
 }

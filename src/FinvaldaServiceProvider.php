@@ -30,8 +30,9 @@ class FinvaldaServiceProvider extends ServiceProvider
             $dataUrl = $app->config->get('finvalda.data_url', '');
             $user = $app->config->get('finvalda.user', '');
             $password = $app->config->get('finvalda.password', '');
+            $company = $app->config->get('finvalda.company_id', '');
 
-            return new Finvalda($url, $dataUrl, $user, $password);
+            return new Finvalda($url, $dataUrl, $user, $password, $company);
         });
 
         $this->app->alias('finvalda', Finvalda::class);
