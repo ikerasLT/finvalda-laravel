@@ -240,14 +240,26 @@ class Finvalda
      *
      * @return array|Collection|mixed|null|object
      */
-    public function getSaleItems($series, $opNumber)
+    public function getSaleItems($series = null, $opNumber = null)
     {
         $data = [
             'sSeries'   => $series,
             'nOpNumber' => $opNumber,
         ];
 
-        $response = $this->getSoap('GetSalesDet', $data);
+        if (! $series) {
+            unset($data['sSeries']);
+        }
+
+        if (! $opNumber) {
+            unset($data['nOpNumber']);
+        }
+
+        if ($data) {
+            $response = $this->getSoap('GetSalesDet', $data);
+        } else {
+            $response = $this->getSoap('GetSalesDet');
+        }
 
         return $this->parseSaleItemsResponse($response);
     }
