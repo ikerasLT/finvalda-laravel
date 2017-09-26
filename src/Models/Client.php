@@ -30,6 +30,8 @@ class Client extends Model
     public $pozymis_1;
     public $pozymis_2;
     public $pozymis_3;
+    public $debt_sask;
+    public $kred_sask;
 
     /**
      * @var \Carbon\Carbon
@@ -64,6 +66,8 @@ class Client extends Model
             'sPozymis2' => $this->pozymis_2,
             'sPozymis3' => $this->pozymis_3,
             'dPapildomaInf' => $this->papildoma_inf,
+            'sDebtSask' => $this->debt_sask,
+            'sKredSask' => $this->kred_sask,
         ];
 
         foreach ($object as $key => $value) {
