@@ -563,7 +563,7 @@ class Finvalda
     protected function generateCode($name)
     {
         $i = 0;
-        $code = strtoupper(trim(substr(str_replace(' ', '_', $name), 0, 13)));
+        $code = strtoupper(substr(str_slug($name, '_'), 0, 13));
         while ($this->getClient($code)) {
             $i++;
 
