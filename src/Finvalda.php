@@ -115,7 +115,7 @@ class Finvalda
     /**
      * @param Inflow $inflow
      *
-     * @return array|Inflow|Collection|mixed|null|\Psr\Http\Message\ResponseInterface
+     * @return array|\Ikeraslt\Finvalda\Models\Inflow|\Illuminate\Support\Collection|null|\Psr\Http\Message\ResponseInterface
      */
     public function insertInflow(Inflow $inflow)
     {
