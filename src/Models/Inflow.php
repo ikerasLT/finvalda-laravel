@@ -66,8 +66,8 @@ class Inflow extends Model
             'sDokumentas' => $this->inflow_order_number,
             'tData' => $this->inflow_date->toDateString(),
             'tIsrasymoData' => $this->inflow_issue_date,
+            'sPavadinimas' => $this->inflow_title,
             'IplDokDetEil' => [
-                'sPavadinimas' => $this->inflow_title,
                 'dSumaV' => $this->amount_inflow_curency,
                 'sSerija' => $this->doc_series,
                 'sDokumentas' => $this->doc_order_number,
