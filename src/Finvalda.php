@@ -13,6 +13,7 @@ use Ikeraslt\Finvalda\Exceptions\WrongAttributeException;
 use Ikeraslt\Finvalda\Models\Client as FinvaldaClient;
 use Ikeraslt\Finvalda\Models\Inflow;
 use Ikeraslt\Finvalda\Models\Model;
+use Ikeraslt\Finvalda\Models\Operation;
 use Ikeraslt\Finvalda\Models\Payment;
 use Ikeraslt\Finvalda\Models\Sale;
 use Ikeraslt\Finvalda\Models\SaleItem;
@@ -151,6 +152,18 @@ class Finvalda
         }
     }
 
+    public function deleteInFlow(Inflow $inflow)
+    {
+        $response = $this->deleteOperation($inflow);
+
+        $result = new \stdClass();
+        $result->success = $response->DeleteOperationResult == 2;
+        $result->delete = $response->DeleteOperationResult == 2 || $response->nResult == 1070;
+        $result->message = $response->sError;
+
+        return $result;
+    }
+
     /**
      * @param \Ikeraslt\Finvalda\Models\Model $item
      *
@@ -200,6 +213,29 @@ class Finvalda
         ];
 
         $response = $this->get('EditItem', $json);
+
+        return $response;
+    }
+
+    /**
+     * @param \Ikeraslt\Finvalda\Models\Operation $item
+     *
+     * @return mixed|\Psr\Http\Message\ResponseInterface
+     */
+    public function deleteOperation(Operation $item)
+    {
+        $json = [
+            'ItemClassName' => $item->getFinvaldaClass(true),
+            'sParametras' => $item->getFinvaldaParam(),
+            'xmlString' => json_encode([
+                $item->getFinvaldaClass(true) => [
+                    'sZurnalas' => $item->getJournal(),
+                    'nNumeris' => $item->getNumber(),
+                ]
+            ]),
+        ];
+
+        $response = $this->get('DeleteOperation', $json);
 
         return $response;
     }

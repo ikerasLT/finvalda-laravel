@@ -3,7 +3,7 @@
 namespace Ikeraslt\Finvalda\Models;
 
 
-class Inflow extends Model
+class Inflow extends Model implements Operation
 {
     const TYPE_ADVANCE = 0;
     const TYPE_FIFO = 1;
@@ -81,5 +81,15 @@ class Inflow extends Model
         $object = $this->dropNullValues($object);
 
         return json_encode([$this->getFinvaldaClass() => $object]);
+    }
+
+    public function getJournal()
+    {
+        return $this->inflow_journal;
+    }
+
+    public function getNumber()
+    {
+        return $this->inflow_number;
     }
 }

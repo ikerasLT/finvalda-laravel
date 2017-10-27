@@ -29,9 +29,9 @@ class Model
     /**
      * @return string
      */
-    public function getFinvaldaClass()
+    public function getFinvaldaClass($delete = false)
     {
-        return $this->finvalda_class;
+        return $delete ? 'Del' . $this->finvalda_class : $this->finvalda_class;
     }
 
     /**
