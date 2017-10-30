@@ -43,6 +43,8 @@ class Finvalda
         $this->user = $user;
         $this->password = $password;
         $this->company = $company;
+
+        $this->soap = new SoapWrapper();
     }
 
     /**
@@ -395,7 +397,7 @@ class Finvalda
      */
     public function getSoap($method, $data = [])
     {
-        $soap = new SoapWrapper();
+        $soap = $this->soap;
 
         $soap->add('FvsWsData', function ($service) {
             $service->wsdl($this->dataUrl)
