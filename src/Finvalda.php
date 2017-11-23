@@ -10,6 +10,7 @@ use Ikeraslt\Finvalda\Exceptions\EmptyResponseException;
 use Ikeraslt\Finvalda\Exceptions\NoBaseUrlException;
 use Ikeraslt\Finvalda\Exceptions\NotFoundException;
 use Ikeraslt\Finvalda\Exceptions\WrongAttributeException;
+use Ikeraslt\Finvalda\Models\Clearing;
 use Ikeraslt\Finvalda\Models\Client as FinvaldaClient;
 use Ikeraslt\Finvalda\Models\Inflow;
 use Ikeraslt\Finvalda\Models\Model;
@@ -340,6 +341,18 @@ class Finvalda
     }
 
     /**
+     * @return \Ikeraslt\Finvalda\Models\Clearing[]|\Illuminate\Support\Collection|mixed|null
+     */
+    public function getClearings()
+    {
+        $response = $this->getSoap('GetClearingOffsDet');
+
+        $clearings = $this->parseClearingsResponse($response);
+
+        return $clearings;
+    }
+
+    /**
      * @param String $url
      * @param array|null $json
      *
@@ -548,6 +561,26 @@ class Finvalda
         }
 
         return $response;
+    }
+
+    /**
+     * @param array $response
+     *
+     * @return mixed|null|Collection|\Ikeraslt\Finvalda\Models\Clearing[]
+     */
+    public function parseClearingsResponse($response)
+    {
+        $result = arr_find('ClearingOffsDet', $response);
+
+        if ($result) {
+            $result = head($result);
+
+            if ($result) {
+                $result = json_decode(json_encode($result));
+            }
+        }
+
+        return $result ? $this->map($result, Clearing::class) : $response;
     }
 
     /**
