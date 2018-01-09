@@ -660,7 +660,7 @@ class Finvalda
             $sales = $this->getSales()->where('op_series', $series);
         }
 
-        return str_pad(intval($sales->max('order_number')) + 1, 7, STR_PAD_LEFT);
+        return str_pad(intval($sales->max('order_number')) + 1, 7, '0', STR_PAD_LEFT);
     }
 
     /**
