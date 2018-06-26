@@ -689,9 +689,15 @@ class Finvalda
         $mapper = new JsonMapper();
         $mapper->bStrictNullTypes = false;
 
-        if (count($response) > 1) {
+        try {
+            $count = count($response);
+        } catch (\ErrorException $e) {
+            $count = $response ? 1 : 0;
+        }
+
+        if ($count > 1) {
             return $mapper->mapArray($response, collect(), $class);
-        } elseif (count($response) == 1) {
+        } elseif ($count == 1) {
             return $mapper->map(head($response), new $class);
         } else {
             return null;
