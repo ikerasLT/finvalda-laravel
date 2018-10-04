@@ -115,9 +115,10 @@ class Finvalda
     }
 
     /**
-     * @param Inflow $inflow
+     * @param \Ikeraslt\Finvalda\Models\Inflow $inflow
      *
      * @return array|\Ikeraslt\Finvalda\Models\Inflow|\Illuminate\Support\Collection|null|\Psr\Http\Message\ResponseInterface
+     * @throws \Nathanmac\Utilities\Parser\Exceptions\ParserException
      */
     public function insertInflow(Inflow $inflow)
     {
